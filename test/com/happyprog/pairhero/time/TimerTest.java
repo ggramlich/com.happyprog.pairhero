@@ -1,16 +1,17 @@
 package com.happyprog.pairhero.time;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import com.happyprog.pairhero.game.Game;
-import com.happyprog.pairhero.time.Timer;
 
 public class TimerTest {
 
+	private static final int SESSION_LENGTH = 2000;
 	private StubbedTimer timer;
 	private Game game;
 
@@ -25,7 +26,7 @@ public class TimerTest {
 	public void updatesGameWhenTimeChanges() throws Exception {
 		timer.start(game);
 
-		verify(game).onTimeChange(Timer._25_MINS - 1);
+		verify(game).onTimeChange(SESSION_LENGTH - 1);
 
 		assertEquals(1, timer.ticks);
 	}
@@ -44,6 +45,14 @@ public class TimerTest {
 	}
 
 	class StubbedTimer extends Timer {
+
+		public StubbedTimer() {
+			super(new SessionLengthProvider() {
+				public int getSessionLength() {
+					return SESSION_LENGTH;
+				}
+			});
+		}
 
 		private int ticks;
 

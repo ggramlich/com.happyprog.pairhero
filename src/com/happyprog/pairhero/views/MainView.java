@@ -17,8 +17,10 @@ import com.happyprog.pairhero.actions.StopAction;
 import com.happyprog.pairhero.game.Game;
 import com.happyprog.pairhero.game.Programmer;
 import com.happyprog.pairhero.game.Scoreboard;
+import com.happyprog.pairhero.preferences.PreferenceStore;
 import com.happyprog.pairhero.subscribers.JUnitSubscriber;
 import com.happyprog.pairhero.subscribers.RefactoringSubscriber;
+import com.happyprog.pairhero.time.SessionLengthProvider;
 import com.happyprog.pairhero.time.TimeFormatter;
 import com.happyprog.pairhero.time.Timer;
 
@@ -45,6 +47,8 @@ public class MainView extends ViewPart {
 	private Scoreboard scoreboard;
 
 	private Composite scoreAreaComposite;
+
+	private SessionLengthProvider sessionLengthProvider = new PreferenceStore();
 
 	@Override
 	public void createPartControl(Composite parent) {
@@ -78,7 +82,8 @@ public class MainView extends ViewPart {
 		line3.setLayout(new RowLayout());
 		new Label(line3, SWT.NONE).setText("Time Left: ");
 		timerLabel = new Label(line3, SWT.NONE);
-		timerLabel.setText(TimeFormatter.formatTime(Timer._25_MINS));
+		timerLabel.setText(TimeFormatter.formatTime(sessionLengthProvider
+				.getSessionLength()));
 	}
 
 	private RowLayout createLayout() {
@@ -91,7 +96,8 @@ public class MainView extends ViewPart {
 	}
 
 	private void createStartButton() {
-		IToolBarManager toolbarManager = getViewSite().getActionBars().getToolBarManager();
+		IToolBarManager toolbarManager = getViewSite().getActionBars()
+				.getToolBarManager();
 
 		startButton = new StartAction(this);
 		stopButton = new StopAction(this);
@@ -111,13 +117,15 @@ public class MainView extends ViewPart {
 	}
 
 	private void startGame() {
-		game = new Game(this, new Timer(), leftProgrammer, rightProgrammer, new JUnitSubscriber(),
+		game = new Game(this, new Timer(sessionLengthProvider), leftProgrammer,
+				rightProgrammer, new JUnitSubscriber(),
 				new RefactoringSubscriber(), scoreboard);
 		game.start();
 	}
 
 	private boolean ableToCreatePlayers() {
-		StartDialog dialog = new StartDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell());
+		StartDialog dialog = new StartDialog(PlatformUI.getWorkbench()
+				.getActiveWorkbenchWindow().getShell());
 		dialog.open();
 
 		if (dialog.getReturnCode() == Dialog.OK) {
@@ -143,7 +151,8 @@ public class MainView extends ViewPart {
 	}
 
 	public void onGameFinished() {
-		EndDialog dialog = new EndDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), scoreboard);
+		EndDialog dialog = new EndDialog(PlatformUI.getWorkbench()
+				.getActiveWorkbenchWindow().getShell(), scoreboard);
 		dialog.open();
 		startButton.setEnabled(true);
 		stopButton.setEnabled(false);
@@ -166,8 +175,9 @@ public class MainView extends ViewPart {
 	}
 
 	public void onStop() {
-		boolean response = MessageDialog.openConfirm(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
-				"Pair Hero", "Are you sure you want to stop this session?");
+		boolean response = MessageDialog.openConfirm(PlatformUI.getWorkbench()
+				.getActiveWorkbenchWindow().getShell(), "Pair Hero",
+				"Are you sure you want to stop this session?");
 
 		if (response) {
 			game.stop();
@@ -189,7 +199,8 @@ public class MainView extends ViewPart {
 	}
 
 	private void showMessageAndUpdateScore(String imageKey, long score) {
-		updateMessage(messageLabel, Activator.getDefault().getImageFromKey(imageKey));
+		updateMessage(messageLabel,
+				Activator.getDefault().getImageFromKey(imageKey));
 		updateScore(score);
 		messageDelayCounter = 3;
 	}
@@ -200,7 +211,8 @@ public class MainView extends ViewPart {
 
 	private void updateMessageToDefault() {
 		if (messageDelayCounter < 0) {
-			updateMessage(messageLabel, Activator.getDefault().getImageFromKey("blank"));
+			updateMessage(messageLabel,
+					Activator.getDefault().getImageFromKey("blank"));
 		}
 		messageDelayCounter--;
 	}
